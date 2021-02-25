@@ -30,8 +30,9 @@ type configT struct {
 	outputs   string
 	listen    string
 
-	uploaderType string
-	maxFileAge   int
+	uploaderType       string
+	maxFileAge         int
+	clearOnlyOriginals bool
 
 	awsAccessKeyID string
 	awsSecretKey   string
@@ -129,8 +130,9 @@ func serverConfigurationFromConfig() *core.ServerConfiguration {
 		RemoteBasePath: config.remoteBasePath,
 		RemoteBaseURL:  config.remoteBaseURL,
 
-		UploaderType: uploader,
-		MaxFileAge:   maxFileAge,
+		UploaderType:       uploader,
+		MaxFileAge:         maxFileAge,
+		ClearOnlyOriginals: config.clearOnlyOriginals,
 
 		// AWS specific
 		AWSAccessKeyID: config.awsAccessKeyID,

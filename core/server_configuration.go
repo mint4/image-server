@@ -29,6 +29,7 @@ type ServerConfiguration struct {
 	UploaderType          string
 	CleanUpTicker         *time.Ticker
 	MaxFileAge            time.Duration
+	ClearOnlyOriginals    bool
 }
 
 func (sc *ServerConfiguration) UploaderIsAws() bool {

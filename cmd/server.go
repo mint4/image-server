@@ -59,6 +59,7 @@ func init() {
 	// Uploader
 	serverCmd.Flags().StringVar(&config.uploaderType, "uploader", "", "Uploader ['s3', 'manta']")
 	serverCmd.Flags().IntVar(&config.maxFileAge, "max_file_age", 30, "Max file age in minutes")
+	serverCmd.Flags().BoolVar(&config.clearOnlyOriginals, "clear_only_originals", false, "Enable deleting only original images for file garbage collector")
 
 	// S3 uploader
 	serverCmd.Flags().StringVar(&config.awsAccessKeyID, "aws_access_key_id", "", "S3 Access Key")

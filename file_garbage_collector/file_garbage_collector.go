@@ -5,9 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/image-server/image-server/core"
-	"path/filepath"
 	"io"
+	"path/filepath"
+
+	"github.com/image-server/image-server/core"
 )
 
 func Start(sc *core.ServerConfiguration) {
@@ -18,7 +19,7 @@ func Start(sc *core.ServerConfiguration) {
 		} else {
 			var stat, _ = os.Stat(absolutePath)
 			if absolutePath != "" && stat.IsDir() {
-				log.Printf("Starting File Cleaner on path [%s]", absolutePath)
+				log.Printf("Starting File Cleaner on path [%s], Clear originals: %t", absolutePath, sc.ClearOnlyOriginals)
 				filepath.Walk(absolutePath, func(path string, info os.FileInfo, err error) error {
 					if !info.IsDir() {
 						age := time.Now().Sub(info.ModTime())
@@ -39,22 +40,32 @@ func Start(sc *core.ServerConfiguration) {
 							log.Printf("[tickID: %v] Error walking path [%s] step [%v]\n", tickTime, path, *pStepNum)
 							return err
 						}
-						if info.IsDir() {
-							empty, err := IsDirectoryEmpty(path)
-							if err != nil {
-								log.Printf("[tickID: %v] Error determining if directory is empty [%s] step [%v]\n", tickTime, path, *pStepNum)
-								return err
-							}
-							if empty && absolutePath != path {
+						if sc.ClearOnlyOriginals {
+							if !info.IsDir() && info.Name() == "original" {
 								age := tickTime.Sub(info.ModTime())
-								log.Printf("[tickID: %v] Marking deletion of directory [%s] size [%d] modTime [%s] age [%s] step [%v]\n", tickTime, path, info.Size(), info.ModTime(), age, *pStepNum)
-								*pPathsToDelete = append(*pPathsToDelete, path)
+								if age > sc.MaxFileAge {
+									log.Printf("[tickID: %v] Marking deletion of file [%s] size [%d] modTime [%s] age [%s] step [%v]\n", tickTime, path, info.Size(), info.ModTime(), age, *pStepNum)
+									*pPathsToDelete = append(*pPathsToDelete, path)
+								}
 							}
 						} else {
-							age := tickTime.Sub(info.ModTime())
-							if age > sc.MaxFileAge {
-								log.Printf("[tickID: %v] Marking deletion of file [%s] size [%d] modTime [%s] age [%s] step [%v]\n", tickTime, path, info.Size(), info.ModTime(), age, *pStepNum)
-								*pPathsToDelete = append(*pPathsToDelete, path)
+							if info.IsDir() {
+								empty, err := IsDirectoryEmpty(path)
+								if err != nil {
+									log.Printf("[tickID: %v] Error determining if directory is empty [%s] step [%v]\n", tickTime, path, *pStepNum)
+									return err
+								}
+								if empty && absolutePath != path {
+									age := tickTime.Sub(info.ModTime())
+									log.Printf("[tickID: %v] Marking deletion of directory [%s] size [%d] modTime [%s] age [%s] step [%v]\n", tickTime, path, info.Size(), info.ModTime(), age, *pStepNum)
+									*pPathsToDelete = append(*pPathsToDelete, path)
+								}
+							} else {
+								age := tickTime.Sub(info.ModTime())
+								if age > sc.MaxFileAge {
+									log.Printf("[tickID: %v] Marking deletion of file [%s] size [%d] modTime [%s] age [%s] step [%v]\n", tickTime, path, info.Size(), info.ModTime(), age, *pStepNum)
+									*pPathsToDelete = append(*pPathsToDelete, path)
+								}
 							}
 						}
 						return nil

@@ -1,10 +1,28 @@
 #!/usr/bin/env sh
 
+DEFAULT_QUALITY=${DEFAULT_QUALITY:-75}
+EXTENSIONS=${EXTENSIONS:-jpg,gif,webp}
+LISTEN=${LISTEN:-0.0.0.0}
 LOCAL_BASE_PATH=${LOCAL_BASE_PATH:-public}
-UPLOADER=${UPLOADER:-aws}
-AWS_S3_BUCKET=${AWS_S3_BUCKET:-image-server}
-AWS_REGION=${AWS_REGION:-us-east-1}
-SERVER_LISTEN=${SERVER_LISTEN:-0.0.0.0}
-REMOTE_BASE_URL=${REMOTE_BASE_URL:-https://s3-${AWS_REGION}.amazonaws.com/${AWS_S3_BUCKET}}
+OUTPUTS=${OUTPUTS:-x200.jpg}
+MAXIMUM_WIDTH=${MAXIMUM_WIDTH:-1000}
+NAMESPACE=${NAMESPACE:-default}
+PORT=${PORT:-7000}
+PROC_CONCURRENCY=${PROC_CONCURRENCY:-4}
+UPL_CONCURRENCY=${UPL_CONCURRENCY:-10}
+MAX_FILE_AGE=${MAX_FILE_AGE:-30}
+CLEAR_ORIGINALS=${CLEAR_ORIGINALS:-false}
 
-exec bin/image-server server --local_base_path ${LOCAL_BASE_PATH} --uploader ${UPLOADER} --aws_bucket ${AWS_S3_BUCKET} --aws_region ${AWS_REGION} --listen ${SERVER_LISTEN} --remote_base_url ${REMOTE_BASE_URL}
+exec bin/image-server server \
+	--max_file_age          ${MAX_FILE_AGE} \
+	--default_quality       ${DEFAULT_QUALITY} \
+	--extensions            ${EXTENSIONS} \
+	--listen                ${LISTEN} \
+	--local_base_path       ${LOCAL_BASE_PATH} \
+	--outputs               ${OUTPUTS} \
+	--maximum_width         ${MAXIMUM_WIDTH} \
+	--namespace             ${NAMESPACE} \
+	--port                  ${PORT} \
+	--processor_concurrency ${PROC_CONCURRENCY} \
+	--uploader_concurrency  ${UPL_CONCURRENCY} \
+	$([ ! "$CLEAR_ORIGINALS" = "false" ] && echo "--clear_only_originals")
